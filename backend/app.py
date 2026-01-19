@@ -1,9 +1,11 @@
 import os
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 # Import the Modal function explicitly
 from resnet18 import train_resnet_remote 
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/trigger-training', methods=['POST'])
 def trigger_training():

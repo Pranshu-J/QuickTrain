@@ -62,7 +62,7 @@ const SupabaseUploader = () => {
       setStatus('Files Uploaded. Triggering Training...');
 
       // 3. Notify Python Backend
-      const response = await fetch('https://YOUR-RENDER-URL.onrender.com/trigger-training', {
+      const response = await fetch('https://quicktrain.onrender.com/trigger-training', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
