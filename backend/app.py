@@ -1,8 +1,7 @@
 import os
+import modal
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-# Import the Modal function explicitly
-from resnet18 import train_resnet_remote 
 
 app = Flask(__name__)
 CORS(app)
@@ -11,32 +10,29 @@ CORS(app)
 def trigger_training():
     try:
         data = request.json
-        file1 = data.get('file1') # "training-data-1-resnet18.zip"
-        file2 = data.get('file2') # "training-data-2-resnet18.zip"
+        file1 = data.get('file1')
+        file2 = data.get('file2')
 
         if not file1 or not file2:
             return jsonify({"error": "Missing filenames"}), 400
 
-        # 1. Verify naming convention logic
-        # Check if 'resnet18' is in both strings
+        # Check for correct naming convention
         if "resnet18" in file1 and "resnet18" in file2:
-            print("Files validated. Initializing Modal...")
+            print("Files validated. Connecting to Modal...")
             
-            # 2. Get Supabase Credentials to pass to Modal
-            # (Modal runs in a separate environment, so it needs these passed in 
-            # or set as Modal Secrets. Passing as args for simplicity here.)
+            # 1. LOOKUP THE DEPLOYED FUNCTION
+            # We use the App Name defined in resnet18.py ("resnet-training-service")
+            # and the function name ("train_resnet_remote")
+            train_function = modal.Function.lookup("resnet-training-service", "train_resnet_remote")
+            
             sb_url = os.environ.get("SUPABASE_URL")
             sb_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 
-            # 3. Trigger the Modal Function
-            # .remote() blocks until the function finishes. 
-            # Note: If training takes >30s, Flask might timeout. 
-            # For long training, use .spawn() and return a Job ID.
             print("Spawning remote training job...")
             
-            # Using call to execute the logic inside resnet18.py
-            # This executes the code in the cloud
-            model_url = train_resnet_remote.remote(file1, file2, sb_url, sb_key)
+            # 2. CALL THE FUNCTION REMOTELY
+            # This triggers the code sitting on Modal's servers
+            model_url = train_function.remote(file1, file2, sb_url, sb_key)
             
             return jsonify({
                 "message": "Training successful",
