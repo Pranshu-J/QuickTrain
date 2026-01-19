@@ -20,18 +20,18 @@ def trigger_training():
         if "resnet18" in file1 and "resnet18" in file2:
             print("Files validated. Connecting to Modal...")
             
-            # 1. LOOKUP THE DEPLOYED FUNCTION
-            # We use the App Name defined in resnet18.py ("resnet-training-service")
-            # and the function name ("train_resnet_remote")
-            train_function = modal.Function.lookup("resnet-training-service", "train_resnet_remote")
+            # --- FIX IS HERE ---
+            # 'lookup' is deprecated. Use 'from_name' instead.
+            # 1st arg: The App Name (defined in resnet18.py as "resnet-training-service")
+            # 2nd arg: The Function Name
+            train_function = modal.Function.from_name("resnet-training-service", "train_resnet_remote")
             
             sb_url = os.environ.get("SUPABASE_URL")
             sb_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 
             print("Spawning remote training job...")
             
-            # 2. CALL THE FUNCTION REMOTELY
-            # This triggers the code sitting on Modal's servers
+            # Execute the function on the cloud
             model_url = train_function.remote(file1, file2, sb_url, sb_key)
             
             return jsonify({
