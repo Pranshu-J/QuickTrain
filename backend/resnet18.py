@@ -9,7 +9,7 @@ image = (
 app = modal.App("resnet-training-service")
 
 @app.function(image=image, gpu="T4", timeout=1200) # 20 minute limit
-def train_resnet_remote(file1_name, file2_name, sb_url, sb_key):
+def train_resnet_remote(file1_name, file2_name, sb_url, sb_key, job_id):
     import os
     import shutil
     import zipfile
@@ -118,13 +118,13 @@ def train_resnet_remote(file1_name, file2_name, sb_url, sb_key):
     save_path = "/tmp/trained_model.pth"
     torch.save(model.state_dict(), save_path)
 
-    # Create a unique name for the bucket
-    remote_filename = f"models/resnet18_custom_{os.urandom(4).hex()}.pth"
+    # Use the job_id for a PREDICTABLE filename
+    remote_filename = f"models/resnet18_{job_id}.pth"
 
     with open(save_path, "rb") as f:
-        supabase.storage.from_('images-bucket').upload(remote_filename, f)
+        # Note: 'upsert=True' ensures we overwrite if needed
+        supabase.storage.from_('images-bucket').upload(remote_filename, f, {"upsert": "true"})
 
-    # Generate Signed URL (valid for 1 hour)
-    signed_url = supabase.storage.from_('images-bucket').create_signed_url(remote_filename, 3600)
-
-    return signed_url['signedUrl']
+    # We don't need to return a signed URL anymore since we are using a public convention
+    # or you can assume the user knows the path.
+    return remote_filename

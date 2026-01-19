@@ -49,34 +49,44 @@ const SupabaseUploader = () => {
     try {
       setStatus('Zipping and Uploading Data...');
       
-      // 1. Define the specific names required
-      const name1 = 'training-data-1-resnet18.zip';
-      const name2 = 'training-data-2-resnet18.zip';
+      // Create a unique Job ID (e.g., timestamp)
+      const jobId = `job_${Date.now()}`;
 
-      // 2. Upload both folders in parallel
+      // 1. Define specific names
+      const name1 = `${jobId}_data1.zip`;
+      const name2 = `${jobId}_data2.zip`;
+
+      // 2. Upload folders
       await Promise.all([
         zipAndUpload(folder1, name1),
         zipAndUpload(folder2, name2)
       ]);
 
-      setStatus('Files Uploaded. Triggering Training...');
+      setStatus('Files Uploaded. Starting Background Training...');
 
-      // 3. Notify Python Backend
+      // 3. Notify Python Backend (Pass the jobId!)
       const response = await fetch('https://quicktrain.onrender.com/trigger-training', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           file1: name1, 
-          file2: name2 
+          file2: name2,
+          jobId: jobId 
         }),
       });
 
-      const data = await response.json();
-      
-      if (!response.ok) throw new Error(data.error);
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Server error');
+      }
 
-      console.log("Training Response:", data);
-      setStatus(`Training Complete! Model URL: ${data.modelUrl}`);
+      // 4. Construct the URL manually (Since we know the format)
+      // Note: This URL will work ONLY after training finishes (approx 5-10 mins)
+      const bucketUrl = import.meta.env.VITE_SUPABASE_URL + "/storage/v1/object/public/images-bucket/models/";
+      const modelUrl = `${bucketUrl}resnet18_${jobId}.pth`;
+
+      setStatus(`Training Started! Check back in 10 mins. Link: ${modelUrl}`);
+      console.log("Model will be available at:", modelUrl);
 
     } catch (error) {
       console.error(error);
