@@ -1,42 +1,332 @@
-#root {
-  max-width: 1280px;
+/* Update Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Gloock&family=Poppins:wght@300;400;500;600&display=swap');
+
+:root {
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --bg-black: #000000;
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-blur: blur(16px);
+}
+
+/* GLOBAL RESET */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-black);
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  color: var(--text-primary);
+}
+
+h1, h2, h3, .logo {
+  font-family: 'Gloock', serif;
+  font-weight: 400;
+}
+
+/* LAYOUT CONTAINERS - 1800px Width */
+.app-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.navbar, .hero-card-wrapper, .models-section {
+  width: 95%; 
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+/* NAVIGATION */
+.navbar {
+  padding: 2.5rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* THE HERO CARD */
+.hero-visual-card {
+  position: relative;
+  width: 100%;
+  min-height: 65vh;
+  border-radius: 40px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2674&auto=format&fit=crop') no-repeat center center;
+  background-size: cover;
+}
+
+.hero-visual-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* SMALLER HEADERS */
+h1 {
+  font-size: clamp(3rem, 7vw, 5.5rem); /* Reduced from previous 7rem */
+  line-height: 1.05;
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 2;
+}
+
+.section-title {
+  font-size: 2.8rem; /* Reduced from 3.5rem */
+  margin-bottom: 3.5rem;
+}
+
+/* GLASS MODEL CARDS WITH SPOTLIGHT */
+.models-section {
+  padding: 8rem 1rem;
+}
+
+.models-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2.5rem;
+}
+
+.model-card {
+  position: relative;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 32px;
+  padding: 4rem 3rem;
+  overflow: hidden; /* Clips the spotlight inside the card */
+  cursor: pointer;
+  transition: transform 0.4s ease, border-color 0.4s ease;
+}
+
+.model-card:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-8px);
+}
+
+/* THE SPOTLIGHT EFFECT */
+.model-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* These variables are updated by JavaScript */
+  background: radial-gradient(
+    600px circle at var(--mouse-x) var(--mouse-y), 
+    rgba(255, 255, 255, 0.12), 
+    transparent 40%
+  );
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none; /* Allows clicks to pass through to the card */
+}
+
+.model-card:hover::before {
+  opacity: 1;
+}
+
+.card-title {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.card-desc {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* --- Modern Upload Areas --- */
+.trainer-wrapper {
+  width: 100%;
+  max-width: 1400px; /* Wide layout */
   margin: 0 auto;
   padding: 2rem;
+}
+
+.trainer-header {
   text-align: center;
+  margin-bottom: 3rem;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.trainer-header h2 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.trainer-header p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.upload-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
 }
 
-.card {
-  padding: 2em;
+.upload-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 30px;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
 }
 
-.read-the-docs {
-  color: #888;
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+  font-family: 'Gloock', serif;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+}
+
+/* The Interactive Drop Zone */
+.drop-zone {
+  flex: 1;
+  min-height: 250px;
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  background: rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+
+.drop-zone:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* State: When dragging a file over */
+.drop-zone.active {
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(0.98);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+}
+
+.drop-zone-content {
+  text-align: center;
+  pointer-events: none; /* Let clicks pass through to parent */
+  z-index: 2;
+}
+
+.drop-icon {
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.drop-zone.active .drop-icon {
+  transform: scale(1.2) translateY(-10px);
+  color: white;
+}
+
+.zone-text {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.zone-subtext {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* File Previews */
+.preview-area {
+  margin-top: 1.5rem;
+}
+
+.file-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  padding: 0 5px;
+}
+
+.preview-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  /* Custom Scrollbar for sleek look */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.3) transparent;
+}
+
+.preview-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.preview-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.3);
+  border-radius: 4px;
+}
+
+.preview-thumb {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.preview-thumb:hover {
+  transform: scale(1.1);
+  border-color: white;
+}
+
+/* Footer Actions */
+.trainer-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-bottom: 4rem;
+}
+
+.status-pill {
+  background: rgba(255,255,255,0.1);
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Mobile Tweaks */
+@media (max-width: 768px) {
+  .upload-grid { grid-template-columns: 1fr; }
+  .drop-zone { min-height: 200px; }
 }
