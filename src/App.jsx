@@ -2,8 +2,12 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './LandingPage';
 import ModelTrainer from './ModelTrainer';
+<<<<<<< HEAD
 import Dashboard from './Dashboard';
 import ModelUsage from './ModelUsage'; // Import the new component
+=======
+import Dashboard from './Dashboard'; // Import the new component
+>>>>>>> 3f7ddce (Page updates and resnet usability extended)
 import { useAuth } from './Auth';
 import './App.css';
 
@@ -32,6 +36,10 @@ const App = () => {
             </ProtectedRoute>
           } 
         />
+<<<<<<< HEAD
+=======
+        {/* Add the Dashboard Route */}
+>>>>>>> 3f7ddce (Page updates and resnet usability extended)
         <Route 
           path="/dashboard" 
           element={
@@ -40,6 +48,7 @@ const App = () => {
             </ProtectedRoute>
           } 
         />
+<<<<<<< HEAD
         {/* Add the ModelUsage Route */}
         <Route 
           path="/model-usage" 
@@ -49,6 +58,8 @@ const App = () => {
             </ProtectedRoute>
           } 
         />
+=======
+>>>>>>> 3f7ddce (Page updates and resnet usability extended)
       </Routes>
     </Router>
   );

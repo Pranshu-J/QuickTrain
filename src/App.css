@@ -26,14 +26,21 @@ html, body, #root {
 body {
   font-family: 'Poppins', sans-serif;
   color: var(--text-primary);
+<<<<<<< HEAD
   -webkit-font-smoothing: antialiased;
 }
 
 h1 {
+=======
+}
+
+h1, h2, h3, .logo {
+>>>>>>> 3f7ddce (Page updates and resnet usability extended)
   font-family: 'Gloock', serif;
   font-weight: 400;
 }
 
+<<<<<<< HEAD
 /* ALL OTHER HEADERS & LOGO - Switch to Poppins */
 h2, h3, .logo, .section-title, .card-header {
   font-family: 'Poppins', sans-serif;
@@ -41,6 +48,8 @@ h2, h3, .logo, .section-title, .card-header {
   letter-spacing: -0.02em;
 }
 
+=======
+>>>>>>> 3f7ddce (Page updates and resnet usability extended)
 /* LAYOUT CONTAINERS - 1800px Width */
 .app-container {
   width: 100%;
@@ -87,9 +96,13 @@ h2, h3, .logo, .section-title, .card-header {
 
 /* SMALLER HEADERS */
 h1 {
+<<<<<<< HEAD
   font-family: 'Gloock', serif;
   font-weight: 400;
   font-size: clamp(3rem, 7vw, 5.5rem);
+=======
+  font-size: clamp(3rem, 7vw, 5.5rem); /* Reduced from previous 7rem */
+>>>>>>> 3f7ddce (Page updates and resnet usability extended)
   line-height: 1.05;
   margin-bottom: 2rem;
   position: relative;
@@ -207,8 +220,12 @@ h1 {
   align-items: center;
   gap: 12px;
   margin-bottom: 1.5rem;
+<<<<<<< HEAD
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
+=======
+  font-family: 'Gloock', serif;
+>>>>>>> 3f7ddce (Page updates and resnet usability extended)
   font-size: 1.5rem;
   color: var(--text-primary);
 }
@@ -340,6 +357,7 @@ h1 {
 @media (max-width: 768px) {
   .upload-grid { grid-template-columns: 1fr; }
   .drop-zone { min-height: 200px; }
+<<<<<<< HEAD
 }
 
 /* Dashboard Specific Layout */
@@ -486,4 +504,6 @@ h1 {
   text-align: center;
   padding: 10rem 2rem;
   color: var(--text-secondary);
+=======
+>>>>>>> 3f7ddce (Page updates and resnet usability extended)
 }
