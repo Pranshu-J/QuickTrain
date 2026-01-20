@@ -2,7 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './LandingPage';
 import ModelTrainer from './ModelTrainer';
-import Dashboard from './Dashboard'; // Import the new component
+import Dashboard from './Dashboard';
+import ModelUsage from './ModelUsage'; // Import the new component
 import { useAuth } from './Auth';
 import './App.css';
 
@@ -31,12 +32,20 @@ const App = () => {
             </ProtectedRoute>
           } 
         />
-        {/* Add the Dashboard Route */}
         <Route 
           path="/dashboard" 
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        {/* Add the ModelUsage Route */}
+        <Route 
+          path="/model-usage" 
+          element={
+            <ProtectedRoute>
+              <ModelUsage />
             </ProtectedRoute>
           } 
         />
