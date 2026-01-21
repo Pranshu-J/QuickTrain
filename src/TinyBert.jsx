@@ -4,6 +4,16 @@ import { ArrowLeft, UploadCloud, FileText, CheckCircle, Info, Cpu } from 'lucide
 import { useAuth, supabase } from './Auth';
 
 const TinyBertTrainer = () => {
+    // Helper to register project in user_data
+    const updateUserData = async (fullProjectName) => {
+      if (!user) throw new Error("User not authenticated");
+      const { data: existingRow } = await supabase.from('user_data').select('data_content').eq('user_id', user.id).single();
+      const currentProjects = existingRow?.data_content?.projects || [];
+      await supabase.from('user_data').upsert({ 
+          user_id: user.id,
+          data_content: { projects: [...currentProjects, fullProjectName] } 
+      });
+    };
   const navigate = useNavigate();
   // We use modelId here to keep it consistent with your other components
   const { modelId } = useParams(); 
@@ -57,21 +67,21 @@ const TinyBertTrainer = () => {
     try {
       setStatus('Initializing...');
       const instanceId = Math.random().toString(36).substring(2, 10);
-      
       const extTrain = trainFile.name.split('.').pop();
-      // FIX: Using projectIdentifier ensures it's never "undefined"
       const trainName = `${projectIdentifier}-train-${user.id}-${instanceId}.${extTrain}`;
 
       setStatus('Uploading Dataset...');
-      
       const { error } = await supabase.storage
         .from('images-bucket')
         .upload(trainName, trainFile, { upsert: true });
-        
       if (error) throw error;
 
+      // Register project in user_data
+      setStatus('Registering Project...');
+      const modelOutputName = `${projectIdentifier}_${instanceId}.zip`;
+      await updateUserData(modelOutputName);
+
       setStatus('Starting Remote Job...');
-      
       const response = await fetch('https://quicktrain.onrender.com/trigger-training', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -85,12 +95,10 @@ const TinyBertTrainer = () => {
           modelType: modelType,
         }),
       });
-
       if (!response.ok) throw new Error('Training trigger failed');
 
       setStatus('Job Started Successfully!');
       setTimeout(() => navigate('/dashboard'), 2000);
-      
     } catch (error) {
       console.error(error);
       setStatus(`Error: ${error.message}`);

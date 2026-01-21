@@ -114,7 +114,7 @@ def train_tinybert_remote(
         return None
 
     # --- 4. Prepare Data & Model ---
-    MODEL_NAME = "huawei-noah/TinyBERT_General_4L_312D"
+    MODEL_NAME = "prajjwal1/bert-tiny"
     dataset, id2label, label2id = load_and_process_data(local_data_path)
 
     print("Tokenizing training data...")
@@ -186,11 +186,11 @@ def train_tinybert_remote(
     
     try:
         with open(final_zip_path, "rb") as f:
-            supabase.storage.from_(bucket_name).upload(
-                path=remote_path, 
-                file=f, 
-                file_options={"upsert": "true"}
-            )
+            # FIX: Use positional arguments exactly like resnet18.py
+            # 1. path
+            # 2. file object
+            # 3. options dict
+            supabase.storage.from_(bucket_name).upload(remote_path, f, {"upsert": "true"})
         print("Upload successful!")
     except Exception as e:
         print(f"Error uploading model: {e}")
