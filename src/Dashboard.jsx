@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-<<<<<<< HEAD
-import { ArrowLeft, CheckCircle, Loader2, Box, Play, Download } from 'lucide-react';
-=======
-import { ArrowLeft, CheckCircle, Loader2, Box } from 'lucide-react';
->>>>>>> 3f7ddce (Page updates and resnet usability extended)
+import { ArrowLeft, CheckCircle, Loader2, Box, Play, Download, Search } from 'lucide-react';
 import { useAuth, supabase } from './Auth';
 
 const Dashboard = () => {
@@ -13,10 +9,6 @@ const Dashboard = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
-<<<<<<< HEAD
-=======
-  // The base URL provided for checking model existence
->>>>>>> 3f7ddce (Page updates and resnet usability extended)
   const STORAGE_BASE_URL = "https://zvdfcnffqjiukibnrumg.supabase.co/storage/v1/object/public/images-bucket/models/";
 
   useEffect(() => {
@@ -27,34 +19,21 @@ const Dashboard = () => {
 
   const checkProjectStatus = async (filename) => {
     try {
-<<<<<<< HEAD
       const response = await fetch(`${STORAGE_BASE_URL}${filename}`, { method: 'HEAD' });
       return response.ok ? 'Complete' : 'Training';
     } catch (error) {
       return 'Unknown';
-=======
-      // We use method: 'HEAD' to check existence without downloading the large file
-      const response = await fetch(`${STORAGE_BASE_URL}${filename}`, { method: 'HEAD' });
-      return response.ok ? 'Training Complete' : 'Training in Progress';
-    } catch (error) {
-      return 'Status Unknown';
->>>>>>> 3f7ddce (Page updates and resnet usability extended)
     }
   };
 
   const fetchProjects = async () => {
     try {
-<<<<<<< HEAD
-=======
-      // 1. Get the list of projects from the DB
->>>>>>> 3f7ddce (Page updates and resnet usability extended)
       const { data, error } = await supabase
         .from('user_data')
         .select('data_content')
         .eq('user_id', user.id)
         .single();
 
-<<<<<<< HEAD
       if (error && error.code !== 'PGRST116') throw error;
 
       const projectFiles = data?.data_content?.projects || [];
@@ -70,29 +49,12 @@ const Dashboard = () => {
           id: fileName.split('.')[0], 
           name: parsedName, 
           fullName: fileName, 
-=======
-      if (error && error.code !== 'PGRST116') throw error; // Ignore "no rows" error
-
-      const projectFiles = data?.data_content?.projects || [];
-
-      // 2. Check status for all projects in parallel
-      const projectDataPromises = projectFiles.map(async (fileName) => {
-        const status = await checkProjectStatus(fileName);
-        return {
-          id: fileName, // Using filename as ID for now
-          name: fileName,
->>>>>>> 3f7ddce (Page updates and resnet usability extended)
           status: status,
           downloadUrl: `${STORAGE_BASE_URL}${fileName}`
         };
       });
 
       const resolvedProjects = await Promise.all(projectDataPromises);
-<<<<<<< HEAD
-=======
-      
-      // Reverse to show newest first
->>>>>>> 3f7ddce (Page updates and resnet usability extended)
       setProjects(resolvedProjects.reverse());
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -102,148 +64,112 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="app-container">
-<<<<<<< HEAD
-      <div className="navbar">
-        <button 
-          onClick={() => navigate('/')} 
-          className="btn-back" 
-          style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'Poppins' }}
-        >
-          <ArrowLeft size={20} /> Back to Home
-        </button>
-        <h2 className="logo" style={{ fontSize: '1.5rem' }}>My Projects</h2>
+    <div className="min-h-screen w-full bg-black text-white font-sans selection:bg-neutral-700">
+      
+      {/* Navbar Area */}
+      <div className="mx-auto max-w-7xl px-6 pt-8 pb-12">
+        <div className="flex items-center justify-between">
+          <button 
+            onClick={() => navigate('/')} 
+            className="group flex items-center gap-2 text-neutral-400 hover:text-white transition-colors"
+          >
+            <div className="rounded-full bg-neutral-900 p-2 group-hover:bg-neutral-800 transition-colors">
+              <ArrowLeft size={20} />
+            </div>
+            <span className="font-medium">Back to Home</span>
+          </button>
+          <h2 className="text-2xl font-bold tracking-tight">My Projects</h2>
+        </div>
       </div>
 
-      <div className="dashboard-content">
+      <div className="mx-auto max-w-7xl px-6">
         {loading ? (
-          <div className="loading-state">
-            <Loader2 className="spin" size={40} />
-            <p>Loading models...</p>
+          <div className="flex flex-col items-center justify-center py-32 text-neutral-500">
+            <Loader2 className="animate-spin mb-4" size={48} />
+            <p className="text-lg font-medium">Loading models...</p>
           </div>
         ) : projects.length === 0 ? (
-          <div className="empty-state">
-            <Box size={60} strokeWidth={1} />
-            <h3 style={{ marginTop: '1rem' }}>No models trained yet</h3>
-            <button className="btn-pill-white" onClick={() => navigate('/')} style={{ marginTop: '1.5rem' }}>
+          <div className="flex flex-col items-center justify-center rounded-3xl bg-neutral-900/50 border border-neutral-800 py-32 text-center">
+            <div className="rounded-full bg-neutral-800 p-6 mb-6">
+              <Box size={48} className="text-neutral-400" strokeWidth={1.5} />
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">No models trained yet</h3>
+            <p className="text-neutral-400 mb-8 max-w-md">Start your journey by training your first custom AI model using our secure infrastructure.</p>
+            <button 
+              className="bg-white text-black px-8 py-3 rounded-full font-bold hover:bg-neutral-200 transition-all hover:scale-105 active:scale-95" 
+              onClick={() => navigate('/')}
+            >
               Train Your First Model
             </button>
           </div>
         ) : (
-          <div className="table-container">
-            <table className="modern-table">
-              <thead>
-                <tr>
-                  <th>Model Name</th>
-                  <th>Project ID</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {projects.map((project) => (
-                  <tr key={project.id}>
-                    <td className="model-name-cell">{project.name}</td>
-                    <td className="id-cell"><code>{project.id}</code></td>
-                    <td>
-                      <div className={`status-tag ${project.status.toLowerCase()}`}>
-                        {project.status === 'Complete' ? <CheckCircle size={14} /> : <Loader2 size={14} className="spin" />}
-                        {project.status}
-                      </div>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div className="action-group">
-                        {project.status === 'Complete' && (
-                          <>
-                            <button 
-                              onClick={() => navigate('/model-usage', { 
-                                state: { 
-                                  modelId: project.id, 
-                                  modelType: project.name,
-                                  fileName: project.fullName,
-                                  downloadUrl: project.downloadUrl
-                                } 
-                              })}
-                              className="action-btn use-btn"
-                              title="Use Model"
-                            >
-                              <Play size={16} fill="currentColor" /> Use Model
-                            </button>
-                            <a href={project.downloadUrl} className="action-btn download-btn" download={project.fullName} title="Download Weights">
-                              <Download size={16} />
-                            </a>
-                          </>
-                        )}
-                      </div>
-                    </td>
+          <div className="rounded-3xl border border-neutral-800 bg-neutral-900/30 overflow-hidden backdrop-blur-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-neutral-800 bg-neutral-900/80 text-sm font-medium text-neutral-400">
+                    <th className="px-8 py-5 font-semibold">Model Name</th>
+                    <th className="px-8 py-5 font-semibold">Project ID</th>
+                    <th className="px-8 py-5 font-semibold">Status</th>
+                    <th className="px-8 py-5 text-right font-semibold">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-neutral-800/50 text-sm">
+                  {projects.map((project) => (
+                    <tr key={project.id} className="group hover:bg-neutral-900/50 transition-colors">
+                      <td className="px-8 py-5 font-medium text-white text-base">
+                        {project.name}
+                      </td>
+                      <td className="px-8 py-5 font-mono text-neutral-500">
+                        {project.id.substring(0, 12)}...
+                      </td>
+                      <td className="px-8 py-5">
+                        <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide
+                          ${project.status === 'Complete' 
+                            ? 'bg-green-950/30 text-green-400 border border-green-900/50' 
+                            : 'bg-yellow-950/30 text-yellow-500 border border-yellow-900/50'
+                          }`}
+                        >
+                          {project.status === 'Complete' ? <CheckCircle size={12} /> : <Loader2 size={12} className="animate-spin" />}
+                          {project.status}
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 text-right">
+                        <div className="flex items-center justify-end gap-3 opacity-100 sm:opacity-60 group-hover:opacity-100 transition-opacity">
+                          {project.status === 'Complete' && (
+                            <>
+                              <button 
+                                onClick={() => navigate('/model-usage', { 
+                                  state: { 
+                                    modelId: project.id, 
+                                    modelType: project.name,
+                                    fileName: project.fullName,
+                                    downloadUrl: project.downloadUrl
+                                  } 
+                                })}
+                                className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-black hover:bg-neutral-200 transition-colors"
+                              >
+                                <Play size={14} fill="currentColor" /> Use Model
+                              </button>
+                              <a 
+                                href={project.downloadUrl} 
+                                className="flex items-center justify-center rounded-full bg-neutral-800 p-2 text-white hover:bg-neutral-700 transition-colors" 
+                                download={project.fullName} 
+                                title="Download Weights"
+                              >
+                                <Download size={16} />
+                              </a>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
-=======
-      <div className="overlay">
-        {/* Header */}
-        <div style={{ padding: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button onClick={() => navigate('/')} className="btn-back">
-            <ArrowLeft size={20} /> Back to Home
-          </button>
-          <h2 style={{ color: 'white', margin: 0 }}>My Projects</h2>
-        </div>
-
-        {/* Content */}
-        <div className="dashboard-container" style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 2rem' }}>
-          
-          {loading ? (
-            <div style={{ color: 'white', textAlign: 'center', marginTop: '4rem' }}>Loading projects...</div>
-          ) : projects.length === 0 ? (
-            <div className="glass-card" style={{ textAlign: 'center', padding: '4rem' }}>
-              <Box size={48} style={{ opacity: 0.5, marginBottom: '1rem' }} />
-              <h3>No projects found</h3>
-              <p>Start training a model to see it here.</p>
-              <button className="btn-primary" onClick={() => navigate('/')} style={{ marginTop: '1rem' }}>
-                Create New Model
-              </button>
-            </div>
-          ) : (
-            <div className="projects-grid" style={{ display: 'grid', gap: '1rem' }}>
-              {projects.map((project) => (
-                <div key={project.id} className="glass-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.5rem' }}>
-                  
-                  <div className="project-info">
-                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem' }}>{project.name}</h3>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: '#ccc' }}>
-                      {project.status === 'Training Complete' ? (
-                        <CheckCircle size={16} color="#4ade80" />
-                      ) : (
-                        <Loader2 size={16} className="spin" />
-                      )}
-                      <span style={{ 
-                        color: project.status === 'Training Complete' ? '#4ade80' : '#fbbf24' 
-                      }}>
-                        {project.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  {project.status === 'Training Complete' && (
-                    <a 
-                      href={project.downloadUrl} 
-                      className="btn-pill-white" 
-                      style={{ textDecoration: 'none', fontSize: '0.9rem' }}
-                      download
-                    >
-                      Download Model
-                    </a>
-                  )}
-                  
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
->>>>>>> 3f7ddce (Page updates and resnet usability extended)
       </div>
     </div>
   );

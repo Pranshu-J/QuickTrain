@@ -11,27 +11,38 @@ def trigger_training():
     try:
         data = request.json
         
-        # New variable names to match frontend
-        train_file1 = data.get('trainFile1')
-        train_file2 = data.get('trainFile2')
-        test_file1 = data.get('testFile1') # Can be None if auto-split
-        test_file2 = data.get('testFile2') # Can be None if auto-split
+        # 1. Extract inputs
+        train_file1 = data.get('trainFile1') or data.get('trainFile')
+        train_file2 = data.get('trainFile2') or data.get('testFile')
+        test_file1 = data.get('testFile1') 
+        test_file2 = data.get('testFile2') 
         use_auto_split = data.get('useAutoSplit', True)
         job_id = data.get('jobId')
+        model_type = data.get('modelType', 'resnet')
 
-        if not train_file1 or not train_file2:
-            return jsonify({"error": "Missing training files"}), 400
+        if not train_file1:
+            return jsonify({"error": "Missing training file(s)"}), 400
 
-        print(f"Job {job_id}: Connecting to Modal...")
-        
-        train_function = modal.Function.from_name("resnet-training-service", "train_resnet_remote")
+        print(f"Job {job_id}: Connecting to Modal for {model_type}...")
+
+        # 3. Dynamic Function Selection
+        if model_type == 'resnet':
+            train_function = modal.Function.from_name("resnet-training-service", "train_resnet_remote")
+            
+        # FIX: Check for 'tiny-bert' (matching React) and use correct Service/Function names
+        elif model_type == 'tinybert' or model_type == 'tiny-bert':
+            # UPDATED: Matches the name defined in bert_service.py
+            train_function = modal.Function.from_name("tinybert-training-service", "train_tinybert_remote")
+            
+        else:
+            return jsonify({"error": f"Unsupported model type: {model_type}"}), 400
         
         sb_url = os.environ.get("SUPABASE_URL")
         sb_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 
         print(f"Spawning background job: {job_id}")
         
-        # Spawning with new arguments
+        # 4. Spawn the job
         train_function.spawn(
             train_file1, 
             train_file2, 
@@ -44,7 +55,7 @@ def trigger_training():
         )
         
         return jsonify({
-            "message": "Training started in background",
+            "message": f"{model_type} training started in background",
             "jobId": job_id
         })
 

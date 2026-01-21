@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import JSZip from 'jszip';
-import { ArrowLeft, UploadCloud, Folder, CheckCircle, ToggleLeft, ToggleRight, AlertCircle } from 'lucide-react';
+import { ArrowLeft, UploadCloud, Folder, CheckCircle, ToggleLeft, ToggleRight, AlertCircle, Sparkles } from 'lucide-react';
 import { useAuth, supabase } from './Auth';
 
 const ModelTrainer = () => {
@@ -35,6 +35,7 @@ const ModelTrainer = () => {
   const inputRefT2 = useRef(null);
   const inputRefV1 = useRef(null);
   const inputRefV2 = useRef(null);
+  const trainBRef = useRef(null);
 
   // Helper: Generate Previews
   const generatePreviews = (files) => {
@@ -66,9 +67,39 @@ const ModelTrainer = () => {
     if (e.dataTransfer.files?.length > 0) handleFiles(e.dataTransfer.files, setFolder, setPreviews);
   };
 
-  // --- Upload Logic ---
+  // Toggle handler with FLIP animation
+  const handleToggleAutoSplit = () => {
+    if (!autoSplit) {
+      const node = trainBRef.current;
+      if (node) {
+        const firstRect = node.getBoundingClientRect();
+        setAutoSplit(true);
+        requestAnimationFrame(() => {
+          const lastRect = node.getBoundingClientRect();
+          const deltaX = firstRect.left - lastRect.left;
+          const deltaY = firstRect.top - lastRect.top;
+          node.style.transition = 'none';
+          node.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+          // eslint-disable-next-line no-unused-expressions
+          node.getBoundingClientRect(); // force reflow
+          node.style.transition = 'transform 400ms ease';
+          node.style.transform = 'translate(0, 0)';
+          const cleanup = () => {
+            node.style.transition = '';
+            node.style.transform = '';
+            node.removeEventListener('transitionend', cleanup);
+          };
+          node.addEventListener('transitionend', cleanup);
+        });
+        return;
+      }
+    }
+    setAutoSplit(!autoSplit);
+  };
+
+  // --- Upload Logic (Same as original) ---
   const zipAndUpload = async (files, fileName) => {
-    if (!files || files.length === 0) return null; // Handle empty optional files
+    if (!files || files.length === 0) return null;
     const zip = new JSZip();
     files.forEach(file => zip.file(file.webkitRelativePath || file.name, file));
     const zipBlob = await zip.generateAsync({ type: 'blob' });
@@ -88,7 +119,6 @@ const ModelTrainer = () => {
   };
 
   const handleStartTraining = async () => {
-    // Validation
     if (trainFolder1.length === 0 || trainFolder2.length === 0) {
       alert("Please upload both Training Class A and Class B.");
       return;
@@ -103,7 +133,6 @@ const ModelTrainer = () => {
       const instanceId = Math.random().toString(36).substring(2, 10);
       const modelFileName = `${modelId}_${instanceId}.pth`;
       
-      // Filenames
       const zipNameT1 = `${modelId}-trainA-${user.id}-${instanceId}.zip`;
       const zipNameT2 = `${modelId}-trainB-${user.id}-${instanceId}.zip`;
       const zipNameV1 = !autoSplit ? `${modelId}-testA-${user.id}-${instanceId}.zip` : null;
@@ -111,7 +140,6 @@ const ModelTrainer = () => {
 
       setStatus('Compressing & Uploading...');
       
-      // Upload concurrently
       await Promise.all([
         zipAndUpload(trainFolder1, zipNameT1),
         zipAndUpload(trainFolder2, zipNameT2),
@@ -154,92 +182,200 @@ const ModelTrainer = () => {
     };
   }, []);
 
-  // Reusable Upload Card Component
-  const UploadCard = ({ title, folder, setFolder, setPreviews, previews, dragActive, setDragActive, inputRef, disabled }) => (
-    <div className={`upload-card ${disabled ? 'disabled-card' : ''}`} style={{opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? 'none' : 'auto'}}>
-      <div className="card-header"><Folder size={20} color="#a1a1aa"/> {title}</div>
+  // Reusable Upload Card
+  const UploadCard = React.forwardRef(({ title, folder, setFolder, setPreviews, previews, dragActive, setDragActive, inputRef, disabled, style }, ref) => (
+    <div 
+      ref={ref} 
+      className={`
+        flex flex-col rounded-3xl p-6 transition-all duration-300 border border-neutral-800 bg-neutral-900
+        ${disabled ? 'opacity-30 pointer-events-none grayscale' : 'hover:border-neutral-700'}
+        ${dragActive ? 'scale-[0.99] border-white/50' : ''}
+      `}
+      style={style}
+    >
+      <div className="flex items-center gap-3 mb-6 text-white font-medium text-lg">
+        <div className="p-2 bg-neutral-800 rounded-full">
+          <Folder size={18} className="text-neutral-400"/> 
+        </div>
+        {title}
+      </div>
+      
+      {/* Drop Zone */}
       <div 
-        className={`drop-zone ${dragActive ? 'active' : ''}`}
+        className={`
+          flex-1 min-h-[200px] border-2 border-dashed rounded-2xl flex flex-col justify-center items-center cursor-pointer transition-all duration-300 relative overflow-hidden group
+          ${dragActive 
+            ? 'border-white bg-neutral-800' 
+            : 'border-neutral-700 bg-black/20 hover:border-neutral-500 hover:bg-neutral-800/50'}
+        `}
         onDragEnter={(e) => handleDrag(e, setDragActive)}
         onDragLeave={(e) => handleDrag(e, setDragActive)}
         onDragOver={(e) => handleDrag(e, setDragActive)}
         onDrop={(e) => handleDrop(e, setDragActive, setFolder, setPreviews)}
         onClick={() => inputRef.current.click()}
       >
-        <div className="drop-zone-content">
-          <UploadCloud size={32} className="drop-icon" />
-          <div className="zone-text">{folder.length > 0 ? 'Add more files' : 'Drop folder here'}</div>
+        <div className="text-center pointer-events-none z-10 p-4">
+          <UploadCloud size={32} className={`mb-4 mx-auto transition-transform duration-300 ${dragActive ? 'scale-110 text-white' : 'text-neutral-500 group-hover:text-white'}`} />
+          <div className="font-medium text-neutral-300 group-hover:text-white transition-colors">
+            {folder.length > 0 ? 'Add more files' : 'Drop folder here'}
+          </div>
+          <p className="text-xs text-neutral-500 mt-2">or click to browse</p>
         </div>
-        <input ref={inputRef} type="file" multiple webkitdirectory="true" onChange={(e) => handleFiles(e.target.files, setFolder, setPreviews)} style={{ display: 'none' }} />
+        <input ref={inputRef} type="file" multiple webkitdirectory="true" onChange={(e) => handleFiles(e.target.files, setFolder, setPreviews)} className="hidden" />
       </div>
+
+      {/* Previews */}
       {folder.length > 0 && (
-        <div className="preview-area">
-          <div className="file-stats"><span><CheckCircle size={14} style={{display:'inline'}}/> {folder.length} files</span></div>
-          <div className="preview-scroll">
-            {previews.map((src, i) => <img key={i} src={src} className="preview-thumb" alt="" />)}
+        <div className="mt-6 animate-fade-in">
+          <div className="flex justify-between text-xs text-neutral-400 mb-3 px-1 uppercase tracking-wide font-semibold">
+            <span className="flex items-center gap-1 text-green-400"><CheckCircle size={12}/> {folder.length} files loaded</span>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+            {previews.map((src, i) => (
+              <img key={i} src={src} className="size-16 rounded-lg object-cover border border-neutral-700 shrink-0 hover:scale-110 transition-transform hover:border-white" alt="" />
+            ))}
           </div>
         </div>
       )}
     </div>
-  );
+  ));
 
   return (
-    <div className="app-container">
-      <div style={{ width: '100%', maxWidth: '1400px', padding: '2rem' }}>
-        <button onClick={() => navigate('/')} className="btn-pill-outline" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-          <ArrowLeft size={18} /> Back
+    <div className="min-h-screen w-full bg-black text-white font-sans flex flex-col items-center">
+      
+      {/* Back Button */}
+      <div className="w-full max-w-[1400px] p-6 pt-8">
+        <button onClick={() => navigate('/')} className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors group">
+          <div className="rounded-full bg-neutral-900 p-2 group-hover:bg-neutral-800 transition-colors">
+            <ArrowLeft size={20} />
+          </div>
+          <span className="font-medium">Back to Home</span>
         </button>
       </div>
 
-      <div className="trainer-wrapper">
-        <div className="trainer-header">
-          <h2>Configure Training</h2>
-          <div className="toggle-container" onClick={() => setAutoSplit(!autoSplit)} style={{cursor:'pointer', display:'flex', alignItems:'center', gap:'10px', marginTop:'10px'}}>
-            {autoSplit ? <ToggleRight size={32} color="#4ade80" /> : <ToggleLeft size={32} color="#9ca3af" />}
-            <span>{autoSplit ? "Auto-split Data (80% Train / 20% Test)" : "Manual Data Upload"}</span>
+      <div className="w-full max-w-[1400px] p-6">
+        
+        {/* Header */}
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-800 bg-neutral-900/50 text-neutral-400 text-xs font-semibold uppercase tracking-wider mb-4">
+            <Sparkles size={12} className="text-yellow-400" />
+            AI Model Training
+          </div>
+          <h2 className="text-5xl md:text-6xl font-bold mb-6 text-white tracking-tight">Configure Training</h2>
+          
+          <div 
+            className="inline-flex items-center gap-4 bg-neutral-900 border border-neutral-800 p-2 pr-6 rounded-full cursor-pointer select-none hover:border-neutral-700 transition-all" 
+            onClick={handleToggleAutoSplit}
+          >
+            <div className={`p-2 rounded-full transition-colors ${autoSplit ? 'text-green-400 bg-green-400/10' : 'text-neutral-500 bg-neutral-800'}`}>
+              {autoSplit 
+                ? <ToggleRight size={28} className="transition-transform" /> 
+                : <ToggleLeft size={28} className="transition-transform" />
+              }
+            </div>
+            <div className="text-left">
+              <span className={`block font-semibold text-sm ${autoSplit ? 'text-white' : 'text-neutral-400'}`}>
+                {autoSplit ? "Auto-split Enabled" : "Manual Split"}
+              </span>
+              <span className="text-xs text-neutral-500">
+                {autoSplit ? "80% Train / 20% Test" : "Upload test data manually"}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="upload-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-          {/* Training Column */}
-          <div style={{display:'flex', flexDirection:'column', gap:'1rem'}}>
-             <h3 style={{color:'white'}}>Training Data</h3>
+        {/* Upload Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          
+          {/* Train A: Always Top Left */}
+          <div className="col-start-1 row-start-1 flex flex-col gap-4">
+             <h3 className="text-white font-bold text-xl ml-2 flex items-center gap-2">
+               <span className="flex items-center justify-center size-6 rounded-full bg-neutral-800 text-xs">1</span>
+               Training Data
+             </h3>
              <UploadCard 
                title="Object A (Train)" folder={trainFolder1} setFolder={setTrainFolder1} 
                previews={trainPreviews1} setPreviews={setTrainPreviews1} 
                dragActive={dragActiveT1} setDragActive={setDragActiveT1} inputRef={inputRefT1} 
+               style={{ flex: 1 }}
              />
+          </div>
+
+          {/* Train B: Shifts position based on mode */}
+          <div className={`${autoSplit ? 'col-start-2 row-start-1' : 'col-start-1 row-start-2'} flex flex-col gap-4`}>
+             {autoSplit && (
+               <h3 className="text-white font-bold text-xl ml-2 flex items-center gap-2">
+                 <span className="flex items-center justify-center size-6 rounded-full bg-neutral-800 text-xs">2</span>
+                 Training Data
+               </h3>
+             )}
+             
              <UploadCard 
+               ref={trainBRef}
                title="Object B (Train)" folder={trainFolder2} setFolder={setTrainFolder2} 
                previews={trainPreviews2} setPreviews={setTrainPreviews2} 
                dragActive={dragActiveT2} setDragActive={setDragActiveT2} inputRef={inputRefT2} 
+               style={{ flex: 1 }}
              />
           </div>
 
-          {/* Testing Column */}
-          <div style={{display:'flex', flexDirection:'column', gap:'1rem'}}>
-             <h3 style={{color: autoSplit ? '#52525b' : 'white'}}>Testing Data {autoSplit && "(Auto-Generated)"}</h3>
-             <UploadCard 
-               title="Object A (Test)" folder={testFolder1} setFolder={setTestFolder1} 
-               previews={testPreviews1} setPreviews={setTestPreviews1} 
-               dragActive={dragActiveV1} setDragActive={setDragActiveV1} inputRef={inputRefV1}
-               disabled={autoSplit}
-             />
-             <UploadCard 
-               title="Object B (Test)" folder={testFolder2} setFolder={setTestFolder2} 
-               previews={testPreviews2} setPreviews={setTestPreviews2} 
-               dragActive={dragActiveV2} setDragActive={setDragActiveV2} inputRef={inputRefV2}
-               disabled={autoSplit}
-             />
+          {/* Testing Data: Only in Manual Mode */}
+          {!autoSplit && (
+            <>
+              <div className="col-start-2 row-start-1 flex flex-col gap-4">
+                <h3 className="text-white font-bold text-xl ml-2 flex items-center gap-2">
+                  <span className="flex items-center justify-center size-6 rounded-full bg-neutral-800 text-xs">3</span>
+                  Testing Data
+                </h3>
+                <UploadCard 
+                  title="Object A (Test)" folder={testFolder1} setFolder={setTestFolder1} 
+                  previews={testPreviews1} setPreviews={setTestPreviews1} 
+                  dragActive={dragActiveV1} setDragActive={setDragActiveV1} inputRef={inputRefV1}
+                  style={{ flex: 1 }}
+                />
+              </div>
+              <div className="col-start-2 row-start-2 flex flex-col gap-4">
+                <UploadCard 
+                  title="Object B (Test)" folder={testFolder2} setFolder={setTestFolder2} 
+                  previews={testPreviews2} setPreviews={setTestPreviews2} 
+                  dragActive={dragActiveV2} setDragActive={setDragActiveV2} inputRef={inputRefV2}
+                  style={{ flex: 1 }}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black to-transparent pointer-events-none flex justify-center pb-12">
+          <div className="pointer-events-auto flex flex-col items-center gap-4">
+            <div className={`px-4 py-1.5 rounded-full border text-xs font-mono font-medium backdrop-blur-md
+              ${status === 'Idle' 
+                ? 'border-neutral-800 bg-neutral-900/80 text-neutral-500' 
+                : status.includes('Error') 
+                  ? 'border-red-900/50 bg-red-950/50 text-red-400'
+                  : 'border-green-900/50 bg-green-950/50 text-green-400'
+              }`}>
+              STATUS: {status.toUpperCase()}
+            </div>
+            
+            <button 
+              className={`
+                px-10 py-4 rounded-full font-bold text-lg transition-all min-w-[240px] shadow-2xl hover:scale-105 active:scale-95
+                ${status === 'Idle' || status.includes('Error') 
+                  ? 'bg-white text-black hover:bg-neutral-200 cursor-pointer shadow-white/10' 
+                  : 'bg-neutral-800 text-neutral-500 cursor-wait'}
+              `}
+              onClick={handleStartTraining} 
+              disabled={status !== 'Idle' && !status.includes('Error')}
+            >
+              {status === 'Idle' || status.includes('Error') ? 'Start Training Session' : 'Processing...'}
+            </button>
           </div>
         </div>
 
-        <div className="trainer-footer">
-          <div className="status-pill">Status: <span style={{color: status === 'Idle' ? '#9ca3af' : '#4ade80'}}>{status}</span></div>
-          <button className="cta-button-large" onClick={handleStartTraining} disabled={status !== 'Idle' && !status.includes('Error')}>
-            {status === 'Idle' || status.includes('Error') ? 'Start Training Session' : 'Processing...'}
-          </button>
-        </div>
+        {/* Spacer for fixed footer */}
+        <div className="h-32"></div>
       </div>
     </div>
   );

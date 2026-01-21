@@ -73,123 +73,86 @@ if __name__ == "__main__":
   };
 
   return (
-    <div className="app-container">
-      <div className="navbar">
+    <div className="min-h-screen w-full bg-white text-black font-sans pb-16">
+      
+      {/* Navbar */}
+      <div className="w-full max-w-7xl mx-auto px-6 py-8">
         <button 
           onClick={() => navigate('/dashboard')} 
-          className="btn-back" 
-          style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'Poppins' }}
+          className="flex items-center gap-2 text-black hover:text-black/70 hover:-translate-x-1 transition-all bg-transparent border-none cursor-pointer font-medium"
         >
           <ArrowLeft size={20} /> Back to Dashboard
         </button>
       </div>
 
-      <div style={{ width: '95%', maxWidth: '1200px', margin: '0 auto', paddingBottom: '4rem' }}>
+      <div className="w-[95%] max-w-[1200px] mx-auto">
         
         {/* Header Section */}
-        <div style={{ marginBottom: '3rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-            <div style={{ background: 'rgba(255,255,255,0.1)', padding: '12px', borderRadius: '16px' }}>
-              <FileJson size={32} color="#4ade80" />
-            </div>
-            <div>
-              <h1 style={{ fontFamily: 'Poppins', fontSize: '2.5rem', margin: 0 }}>{modelType} Integration</h1>
-              <p style={{ color: 'rgba(255,255,255,0.6)', marginTop: '0.5rem' }}>
-                ID: <code style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '6px' }}>{modelId}</code>
-              </p>
-            </div>
+        <div className="mb-12 flex items-center gap-4">
+          <div className="bg-green-50 p-3 rounded-2xl border border-green-100">
+            <FileJson size={32} className="text-green-500" />
+          </div>
+          <div>
+            <h1 className="font-sans text-4xl font-semibold m-0 text-black">{modelType} Integration</h1>
+            <p className="text-black/50 mt-2 text-base flex items-center gap-2">
+              ID: <code className="bg-gray-100 px-2 py-1 rounded-md text-sm font-mono text-black/80 border border-gray-200">{modelId}</code>
+            </p>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-8">
           
           {/* Main Content: Code Snippet */}
-          <div className="usage-card" style={{ 
-            background: 'var(--glass-bg)', 
-            backdropFilter: 'blur(20px)',
-            border: '1px solid var(--glass-border)', 
-            borderRadius: '24px', 
-            padding: '2rem' 
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="bg-white border border-gray-200 rounded-3xl p-8 shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="flex items-center gap-2.5 font-semibold text-xl">
                 <Terminal size={20} /> Python Inference Script
               </h3>
               <button 
                 onClick={handleCopy}
-                style={{ 
-                  background: copied ? 'rgba(74, 222, 128, 0.1)' : 'rgba(255,255,255,0.05)', 
-                  border: '1px solid var(--glass-border)', 
-                  color: copied ? '#4ade80' : 'white',
-                  padding: '8px 16px', 
-                  borderRadius: '12px', 
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s'
-                }}
+                className={`
+                  flex items-center gap-2 px-4 py-2 rounded-xl border transition-all cursor-pointer font-medium text-sm
+                  ${copied 
+                    ? 'bg-green-50 border-green-200 text-green-600' 
+                    : 'bg-white border-gray-200 text-black hover:bg-gray-50'
+                  }
+                `}
               >
                 {copied ? <Check size={16} /> : <Copy size={16} />}
                 {copied ? 'Copied!' : 'Copy Code'}
               </button>
             </div>
 
-            <div style={{ 
-              background: '#0f0f11', 
-              borderRadius: '16px', 
-              padding: '1.5rem', 
-              overflowX: 'auto',
-              border: '1px solid rgba(255,255,255,0.05)'
-            }}>
-              <pre style={{ margin: 0, fontFamily: 'monospace', fontSize: '0.9rem', color: '#e4e4e7', lineHeight: '1.6' }}>
+            {/* Code Block - Kept Dark for readability */}
+            <div className="bg-[#0f0f11] rounded-2xl p-6 overflow-x-auto border border-gray-100/10 shadow-inner">
+              <pre className="m-0 font-mono text-sm text-gray-200 leading-relaxed">
                 {pythonCode}
               </pre>
             </div>
           </div>
 
           {/* Sidebar: Actions & Info */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="flex flex-col gap-6">
             
             {/* Download Card */}
-            <div style={{ 
-              background: 'var(--glass-bg)', 
-              backdropFilter: 'blur(20px)',
-              border: '1px solid var(--glass-border)', 
-              borderRadius: '24px', 
-              padding: '2rem' 
-            }}>
-              <h3 style={{ marginBottom: '1rem' }}>Get Weights</h3>
-              <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+            <div className="bg-white border border-gray-200 rounded-3xl p-8 shadow-sm">
+              <h3 className="mb-3 font-semibold text-lg">Get Weights</h3>
+              <p className="text-black/60 text-sm mb-6 leading-relaxed">
                 Download the trained .pth file to use with the inference script.
               </p>
               <a 
                 href={downloadUrl} 
                 download={fileName}
-                className="cta-button-large"
-                style={{ 
-                  width: '100%', 
-                  textAlign: 'center', 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  alignItems: 'center', 
-                  gap: '10px',
-                  textDecoration: 'none'
-                }}
+                className="flex justify-center items-center gap-2.5 w-full bg-black text-white py-4 rounded-full font-semibold hover:bg-gray-800 transition-colors no-underline"
               >
                 <Download size={20} /> Download Model
               </a>
             </div>
 
             {/* Quick Info */}
-            <div style={{ 
-              background: 'rgba(255,255,255,0.02)', 
-              border: '1px solid var(--glass-border)', 
-              borderRadius: '24px', 
-              padding: '2rem' 
-            }}>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Requirements</h3>
-              <ul style={{ paddingLeft: '1.2rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.8' }}>
+            <div className="bg-gray-50 border border-gray-100 rounded-3xl p-8">
+              <h3 className="mb-4 font-medium text-lg text-black">Requirements</h3>
+              <ul className="pl-5 text-black/70 leading-loose list-disc">
                 <li>Python 3.8+</li>
                 <li>PyTorch</li>
                 <li>Torchvision</li>
