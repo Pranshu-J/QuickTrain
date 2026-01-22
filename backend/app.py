@@ -23,9 +23,10 @@ def handle_resnet(data, sb_url, sb_key, job_id):
 
 def handle_tinybert(data, sb_url, sb_key, job_id):
     f = modal.Function.from_name("tinybert-training-service", "train_tinybert_remote")
-    # TinyBERT might generally follow ResNet structure
+    # Use .get() with a fallback to handle 'trainFile' or 'trainFile1'
+    train_file = data.get('trainFile1') or data.get('trainFile')
     f.spawn(
-        data.get('trainFile1'), 
+        train_file, 
         data.get('trainFile2'), 
         data.get('testFile1'), 
         data.get('testFile2'), 
