@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Box, ArrowRight, X } from 'lucide-react';
 import { useAuth, signInWithGoogle, signOut } from './Auth';
 import Navbar from './Navbar';
+// 1. Import the image at the top of the file using forward slashes
+import backgroundImage from './assets/background1.webp';
 
 // --- Components ---
 
@@ -138,11 +140,11 @@ const LandingPage = () => {
         <header className="relative w-full h-full rounded-2xl overflow-hidden bg-neutral-900">
           {/* Background Image & Overlays */}
           <div className="absolute inset-0 z-0">
-             {/* Using the same webp from your source code */}
             <img 
               alt="Background" 
               className="h-full w-full object-cover opacity-80" 
-              src="src/assets/background1.webp" 
+              // 2. Use the imported variable instead of a string path
+              src={backgroundImage} 
             />
             <div className="absolute inset-0 bg-black opacity-20"></div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30"></div>

@@ -15,6 +15,7 @@ const Dashboard = () => {
   const MODEL_NAME_MAP = {
     resnet18: "ResNet-18",
     tinybert: "TinyBERT",
+    'ebm-model': "EBM",
     // Add more mappings here as needed
   };
 
@@ -24,6 +25,15 @@ const Dashboard = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (projects.length > 0) {
+      const interval = setInterval(() => {
+        updateStatuses();
+      }, 10000); // Check every 10 seconds
+      return () => clearInterval(interval);
+    }
+  }, [projects]);
+
   const checkProjectStatus = async (filename) => {
     try {
       const response = await fetch(`${STORAGE_BASE_URL}${filename}`, { method: 'HEAD' });
@@ -31,6 +41,19 @@ const Dashboard = () => {
     } catch (error) {
       return 'Unknown';
     }
+  };
+
+  const updateStatuses = async () => {
+    const updatedProjects = await Promise.all(
+      projects.map(async (project) => {
+        if (project.status !== 'Complete') {
+          const status = await checkProjectStatus(project.fullName);
+          return { ...project, status };
+        }
+        return project;
+      })
+    );
+    setProjects(updatedProjects);
   };
 
   const fetchProjects = async () => {
@@ -48,13 +71,21 @@ const Dashboard = () => {
       const projectDataPromises = projectFiles.map(async (fileName) => {
         const status = await checkProjectStatus(fileName);
         const id = fileName.split('.')[0];
-        // Use dictionary for model name mapping
-        let modelName = id.split('_')[0].toLowerCase();
-        let parsedName = MODEL_NAME_MAP[modelName];
+
+        // Logic: Extract the prefix before the first '_' or '-'
+        // This allows "ebm_...", "ebm-model_...", or "resnet18_..." to all work.
+        let rawPrefix = id.split('_')[0].toLowerCase();
+        
+        // Normalize: remove "-model" suffix if it exists for ebm
+        let modelKey = rawPrefix.replace('-model', ''); 
+        
+        let parsedName = MODEL_NAME_MAP[modelKey] || MODEL_NAME_MAP[rawPrefix];
+
         if (!parsedName) {
-          // Fallback to previous logic if not found in map
-          parsedName = modelName.charAt(0).toUpperCase() + modelName.slice(1).replace('net', 'Net');
+          // Fallback: ResNet-style formatting
+          parsedName = modelKey.charAt(0).toUpperCase() + modelKey.slice(1).replace('net', 'Net');
         }
+
         return {
           id: id,
           name: parsedName,

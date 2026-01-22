@@ -17,6 +17,9 @@ const ModelUsage = () => {
   // Detect if the model is TinyBERT based on the name passed from Dashboard
   const isTinyBert = modelType && modelType.toLowerCase().includes('tinybert');
 
+  // Add this line to detect EBM models
+  const isEbm = modelType && modelType.toLowerCase().includes('ebm');
+
   // 1. ResNet Code Snippet (Unchanged)
   const resnetCode = `import torch
 import torch.nn as nn
@@ -140,8 +143,56 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error: {e}")`;
 
+  // --- 3. EBM Code Snippet ---
+  const ebmCode = `import joblib
+import pandas as pd
+
+def predict_with_ebm(model_path, input_data):
+    """
+    Loads an EBM model and makes a prediction.
+    The model handles its own preprocessing for categorical features.
+    """
+    # 1. Load the saved model
+    model = joblib.load(model_path)
+    
+    # 2. Convert input to DataFrame
+    # EBM requires feature names to match the training data exactly
+    if isinstance(input_data, dict):
+        input_data = [input_data]
+    
+    df_input = pd.DataFrame(input_data)
+    
+    # Ensure columns are treated as objects/numpy-compatible for 'interpret' library
+    for col in df_input.columns:
+        if df_input[col].dtype == 'object' or isinstance(df_input[col].dtype, pd.StringDtype):
+            df_input[col] = df_input[col].astype(object)
+
+    # 3. Make Prediction
+    predictions = model.predict(df_input)
+    probabilities = model.predict_proba(df_input)
+    
+    return predictions[0], probabilities[0]
+
+# --- CONFIGURATION ---
+MODEL_FILE = "${fileName || 'ebm_model.pkl'}"
+
+# Example input: Replace keys with your actual CSV column headers
+sample_data = {
+    "feature_1": 10.5,
+    "feature_2": "Category_A",
+    "feature_3": 0.95
+}
+
+if __name__ == "__main__":
+    try:
+        label, probs = predict_with_ebm(MODEL_FILE, sample_data)
+        print(f"Prediction: {label}")
+        print(f"Probabilities: {probs}")
+    except Exception as e:
+        print(f"Error: {e}")`;
+
   // Select the correct code based on the flag
-  const pythonCode = isTinyBert ? tinyBertCode : resnetCode;
+  const pythonCode = isTinyBert ? tinyBertCode : isEbm ? ebmCode : resnetCode;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(pythonCode);
@@ -217,6 +268,8 @@ if __name__ == "__main__":
               <p className="text-black/60 text-sm mb-6 leading-relaxed">
                 {isTinyBert 
                   ? "Download the model zip file. This archive contains the config, tokenizer, and safetensors weights."
+                  : isEbm
+                  ? "Download the trained .pkl file to use with the inference script."
                   : "Download the trained .pth file to use with the inference script."
                 }
               </p>
@@ -238,6 +291,14 @@ if __name__ == "__main__":
                      <li>Python 3.8+</li>
                      <li>Transformers (Hugging Face)</li>
                      <li>PyTorch</li>
+                   </>
+                ) : isEbm ? (
+                   <>
+                     <li>Python 3.8+</li>
+                     <li>interpret</li>
+                     <li>scikit-learn</li>
+                     <li>pandas</li>
+                     <li>joblib</li>
                    </>
                 ) : (
                    <>
