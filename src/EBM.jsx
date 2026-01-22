@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, UploadCloud, FileText, CheckCircle, Info, Cpu } from 'lucide-react';
+import { ArrowLeft, UploadCloud, FileText, CheckCircle, Info, Zap } from 'lucide-react';
 import { useAuth, supabase } from './Auth';
 
-const TinyBertTrainer = () => {
+const EBMTrainer = () => {
     // Helper to register project in user_data
     const updateUserData = async (fullProjectName) => {
       if (!user) throw new Error("User not authenticated");
@@ -20,9 +20,10 @@ const TinyBertTrainer = () => {
   const { user } = useAuth();
   
   // Define a fallback name so it doesn't result in "undefined"
-  const projectIdentifier = modelId || 'tinybert';
+  const projectIdentifier = modelId || 'ebm-model';
 
-  const [modelType, setModelType] = useState('tiny-bert'); 
+  // Set model type to EBM
+  const [modelType, setModelType] = useState('ebm'); 
   const [trainFile, setTrainFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const [status, setStatus] = useState('Idle');
@@ -68,6 +69,7 @@ const TinyBertTrainer = () => {
       setStatus('Initializing...');
       const instanceId = Math.random().toString(36).substring(2, 10);
       const extTrain = trainFile.name.split('.').pop();
+      // Naming convention adapted for EBM
       const trainName = `${projectIdentifier}-train-${user.id}-${instanceId}.${extTrain}`;
 
       setStatus('Uploading Dataset...');
@@ -92,7 +94,7 @@ const TinyBertTrainer = () => {
           testFile2: null,
           useAutoSplit: true,
           jobId: instanceId,
-          modelType: modelType,
+          modelType: modelType, // Sends 'ebm'
         }),
       });
       if (!response.ok) throw new Error('Training trigger failed');
@@ -116,21 +118,21 @@ const TinyBertTrainer = () => {
 
       <div className="w-full max-w-[800px] p-6">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-800 bg-neutral-900/50 text-purple-400 text-xs font-semibold uppercase tracking-wider mb-4">
-            <Cpu size={12} />
-            NLP Training
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-800 bg-neutral-900/50 text-amber-400 text-xs font-semibold uppercase tracking-wider mb-4">
+            <Zap size={12} />
+            Energy Based Model
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white tracking-tight">TinyBERT Fine-Tuning</h2>
-          <p className="text-neutral-400">Upload a dataset to train a compact language model for text classification.</p>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white tracking-tight">EBM Fine-Tuning</h2>
+          <p className="text-neutral-400">Train an Energy-Based Model for density estimation or generative classification tasks.</p>
         </div>
 
-        <div className="bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 mb-8 flex gap-3 text-sm text-blue-200">
-           <Info className="shrink-0 text-blue-400" size={20} />
+        <div className="bg-amber-900/10 border border-amber-500/20 rounded-xl p-4 mb-8 flex gap-3 text-sm text-amber-200">
+           <Info className="shrink-0 text-amber-400" size={20} />
            <div>
-             <strong>Format Requirement:</strong> Your file (CSV or JSON) must contain two columns: 
-             <ul className="list-disc list-inside mt-1 ml-1 text-blue-300/80">
-               <li><code>text</code>: The sentence or paragraph to classify</li>
-               <li><code>label</code>: The category name or ID (integer)</li>
+             <strong>Format Requirement:</strong> Your file (CSV or JSON) must contain input data:
+             <ul className="list-disc list-inside mt-1 ml-1 text-amber-300/80">
+               <li><code>text</code>: The input data sequence</li>
+               <li><code>label</code>: The class or scalar energy target</li>
              </ul>
            </div>
         </div>
@@ -138,7 +140,7 @@ const TinyBertTrainer = () => {
         <div className="mb-6">
            <label className="text-sm font-semibold text-neutral-400 uppercase tracking-wide mb-2 block">Selected Model Architecture</label>
            <div className="w-full bg-neutral-900 text-white border border-neutral-800 rounded-lg px-4 py-3 opacity-80 cursor-not-allowed flex justify-between items-center">
-             <span>prajjwal1/bert-tiny (L=2, H=128)</span>
+             <span>Stochastic Deep Energy (Langevin Dynamics)</span>
              <span className="text-xs bg-neutral-800 px-2 py-1 rounded text-neutral-400">Fixed</span>
            </div>
         </div>
@@ -146,12 +148,12 @@ const TinyBertTrainer = () => {
         <div 
           className={`
             flex flex-col rounded-3xl p-8 transition-all duration-300 border border-neutral-800 bg-neutral-900
-            hover:border-neutral-700 ${dragActive ? 'scale-[0.99] border-purple-500/50' : ''}
+            hover:border-neutral-700 ${dragActive ? 'scale-[0.99] border-amber-500/50' : ''}
           `}
         >
           <div className="flex items-center gap-3 mb-6 text-white font-medium text-lg">
             <div className="p-2 bg-neutral-800 rounded-full">
-              <FileText size={18} className="text-purple-400"/> 
+              <FileText size={18} className="text-amber-400"/> 
             </div>
             Training Dataset
           </div>
@@ -160,7 +162,7 @@ const TinyBertTrainer = () => {
             className={`
               min-h-[200px] border-2 border-dashed rounded-2xl flex flex-col justify-center items-center cursor-pointer transition-all duration-300 relative overflow-hidden group
               ${dragActive 
-                ? 'border-purple-500 bg-neutral-800' 
+                ? 'border-amber-500 bg-neutral-800' 
                 : trainFile 
                   ? 'border-green-500/50 bg-green-900/10'
                   : 'border-neutral-700 bg-black/20 hover:border-neutral-500 hover:bg-neutral-800/50'}
@@ -180,7 +182,7 @@ const TinyBertTrainer = () => {
                  </div>
               ) : (
                  <>
-                   <UploadCloud size={40} className={`mb-4 mx-auto transition-transform duration-300 ${dragActive ? 'scale-110 text-purple-400' : 'text-neutral-500 group-hover:text-white'}`} />
+                   <UploadCloud size={40} className={`mb-4 mx-auto transition-transform duration-300 ${dragActive ? 'scale-110 text-amber-400' : 'text-neutral-500 group-hover:text-white'}`} />
                    <div className="font-medium text-lg text-neutral-300 group-hover:text-white transition-colors">
                      Drop CSV or JSON here
                    </div>
@@ -220,4 +222,4 @@ const TinyBertTrainer = () => {
   );
 };
 
-export default TinyBertTrainer;
+export default EBMTrainer;

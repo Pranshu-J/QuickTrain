@@ -5,6 +5,7 @@ import ModelTrainer from './ModelTrainer';
 import Dashboard from './Dashboard';
 import ModelUsage from './ModelUsage';
 import TinyBert from './TinyBert';
+import EBMTrainer from './EBM';
 import { useAuth } from './Auth';
 import './App.css';
 
@@ -47,6 +48,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <TinyBert />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/ebm" 
+            element={
+              <ProtectedRoute>
+                <EBMTrainer />
               </ProtectedRoute>
             } 
           />

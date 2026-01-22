@@ -44,7 +44,7 @@ const ModelCard = ({ id, title, description, onSelect }) => {
           </p>
         </div>
         <div className="mt-8 flex items-center text-white/50 group-hover:text-white transition-colors">
-          <span className="text-sm font-medium mr-2">Train Model</span>
+          <span className="text-sm font-medium mr-2">Tune Model</span>
           <ArrowRight size={20} />
         </div>
       </div>
@@ -87,6 +87,8 @@ const LandingPage = () => {
     }
     if (modelId === 'tinybert') {
       navigate('/tinybert');
+    } else if (modelId === 'ebm') {
+      navigate('/ebm');
     } else {
       navigate(`/train/${modelId}`);
     }
@@ -124,7 +126,7 @@ const LandingPage = () => {
             >
               Continue with Google
             </button>
-          </div>
+          </div>  
         </div>
       )}
 
@@ -180,9 +182,9 @@ const LandingPage = () => {
             onSelect={handleModelSelect}
           />
            <ModelCard 
-            id="yolov8"
-            title="YOLO v8"
-            description="Real-time object detection. High accuracy and speed for detecting multiple objects in images."
+            id="ebm"
+            title="EBM (InterpretML)"
+            description="Explainable Boosting Machine for interpretable machine learning. Gain model predictions with state-of-the-art interpretability."
             onSelect={handleModelSelect}
           />
            <ModelCard 
@@ -199,10 +201,10 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2 opacity-50">
              <Box size={20} />
-             <span className="font-semibold">Weights Clone</span>
+             <span className="font-semibold">Weights</span>
           </div>
           <p className="text-neutral-500 text-sm">
-            © 2026 Weights Clone. All rights reserved.
+            © 2026 Weights. All rights reserved.
           </p>
         </div>
       </footer>

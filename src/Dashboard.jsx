@@ -11,6 +11,13 @@ const Dashboard = () => {
 
   const STORAGE_BASE_URL = "https://zvdfcnffqjiukibnrumg.supabase.co/storage/v1/object/public/images-bucket/models/";
 
+  // Model id prefix to model name mapping
+  const MODEL_NAME_MAP = {
+    resnet18: "ResNet-18",
+    tinybert: "TinyBERT",
+    // Add more mappings here as needed
+  };
+
   useEffect(() => {
     if (user) {
       fetchProjects();
@@ -40,15 +47,18 @@ const Dashboard = () => {
 
       const projectDataPromises = projectFiles.map(async (fileName) => {
         const status = await checkProjectStatus(fileName);
-        
-        // Parsing Logic
-        const baseName = fileName.split('_')[0]; 
-        const parsedName = baseName.charAt(0).toUpperCase() + baseName.slice(1).replace('net', 'Net');
-
+        const id = fileName.split('.')[0];
+        // Use dictionary for model name mapping
+        let modelName = id.split('_')[0].toLowerCase();
+        let parsedName = MODEL_NAME_MAP[modelName];
+        if (!parsedName) {
+          // Fallback to previous logic if not found in map
+          parsedName = modelName.charAt(0).toUpperCase() + modelName.slice(1).replace('net', 'Net');
+        }
         return {
-          id: fileName.split('.')[0], 
-          name: parsedName, 
-          fullName: fileName, 
+          id: id,
+          name: parsedName,
+          fullName: fileName,
           status: status,
           downloadUrl: `${STORAGE_BASE_URL}${fileName}`
         };

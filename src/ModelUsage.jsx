@@ -14,38 +14,38 @@ const ModelUsage = () => {
 
   const { modelId, modelType, fileName, downloadUrl } = location.state;
 
-  const pythonCode = `import torch
+  // Detect if the model is TinyBERT based on the name passed from Dashboard
+  const isTinyBert = modelType && modelType.toLowerCase().includes('tinybert');
+
+  // 1. ResNet Code Snippet (Unchanged)
+  const resnetCode = `import torch
 import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
 
 def load_model(model_path, num_classes=2):
-    # 1. Initialize the architecture (must match the training script)
+    # 1. Initialize the architecture
     model = models.resnet18()
     model.fc = nn.Linear(model.fc.in_features, num_classes)
     
     # 2. Load the saved weights
-    # map_location ensures it works even if you don't have a GPU locally
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)
-    model.eval() # Set to evaluation mode
+    model.eval()
     return model, device
 
 def predict(image_path, model, device):
-    # 3. Define the exact transformations used in training
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
-    # 4. Load and preprocess the image
     image = Image.open(image_path).convert('RGB')
-    image = transform(image).unsqueeze(0) # Add batch dimension (1, 3, 224, 224)
+    image = transform(image).unsqueeze(0)
     image = image.to(device)
 
-    # 5. Perform Inference
     with torch.no_grad():
         outputs = model(image)
         _, predicted = torch.max(outputs, 1)
@@ -53,18 +53,95 @@ def predict(image_path, model, device):
     return predicted.item()
 
 # --- CONFIGURATION ---
-MODEL_FILE = "${fileName || 'trained_model.pth'}"  # Path to your downloaded .pth file
-IMAGE_TO_TEST = "test_image.jpg" # Path to the image you want to classify
-CLASS_NAMES = ["Class 0", "Class 1"] # Replace with your actual labels
+MODEL_FILE = "${fileName || 'trained_model.pth'}"
+IMAGE_TO_TEST = "test_image.jpg" 
+CLASS_NAMES = ["Class 0", "Class 1"] 
 
 if __name__ == "__main__":
     try:
         my_model, current_device = load_model(MODEL_FILE)
         result_index = predict(IMAGE_TO_TEST, my_model, current_device)
-        
-        print(f"Prediction: {CLASS_NAMES[result_index]} (Index: {result_index})")
+        print(f"Prediction: {CLASS_NAMES[result_index]}")
     except Exception as e:
         print(f"Error: {e}")`;
+
+  // 2. Updated TinyBERT Code Snippet (Handles Zip extraction)
+  const tinyBertCode = `import torch
+import zipfile
+import os
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
+def setup_model(zip_path, extract_to="./my_model_files"):
+    """
+    Checks for the model zip file and extracts it to a folder.
+    Transformers requires a folder path to load the configuration and weights.
+    """
+    # If the directory exists and has files, assume it's already extracted
+    if os.path.exists(extract_to) and os.listdir(extract_to):
+        return extract_to
+
+    print(f"Extracting {zip_path}...")
+    if not os.path.exists(zip_path):
+        raise FileNotFoundError(f"Model zip file not found: {zip_path}")
+
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_to)
+    
+    print(f"Model extracted to: {extract_to}")
+    return extract_to
+
+def classify_text(text_input, model_dir):
+    # 1. Load the tokenizer and model from the extracted folder
+    # This reads 'config.json', 'model.safetensors', etc.
+    tokenizer = AutoTokenizer.from_pretrained(model_dir)
+    model = AutoModelForSequenceClassification.from_pretrained(model_dir)
+
+    # 2. Tokenize
+    inputs = tokenizer(
+        text_input,
+        return_tensors="pt",
+        truncation=True,
+        padding=True,
+        max_length=128
+    )
+
+    # 3. Inference
+    model.eval()
+    with torch.no_grad():
+        outputs = model(**inputs)
+
+    # 4. Process results
+    predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
+    label_id = torch.argmax(predictions, dim=1).item()
+    confidence = torch.max(predictions).item()
+
+    # 5. Get Label Name from config
+    label_name = model.config.id2label[label_id]
+
+    return label_name, confidence
+
+# --- CONFIGURATION ---
+# Ensure this matches the name of the file you downloaded
+MODEL_ZIP_FILE = "${fileName || 'model.zip'}" 
+EXTRACT_DIR = "./extracted_model_v1"
+
+if __name__ == "__main__":
+    sample_text = "I am having trouble logging into my account, please help!"
+
+    try:
+        # Step 1: Unzip the model
+        model_folder_path = setup_model(MODEL_ZIP_FILE, EXTRACT_DIR)
+        
+        # Step 2: Run classification
+        label, score = classify_text(sample_text, model_folder_path)
+        
+        print(f"\\nInput: {sample_text}")
+        print(f"Result: {label} ({score:.2%} confidence)")
+    except Exception as e:
+        print(f"Error: {e}")`;
+
+  // Select the correct code based on the flag
+  const pythonCode = isTinyBert ? tinyBertCode : resnetCode;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(pythonCode);
@@ -123,7 +200,7 @@ if __name__ == "__main__":
               </button>
             </div>
 
-            {/* Code Block - Kept Dark for readability */}
+            {/* Code Block */}
             <div className="bg-[#0f0f11] rounded-2xl p-6 overflow-x-auto border border-gray-100/10 shadow-inner">
               <pre className="m-0 font-mono text-sm text-gray-200 leading-relaxed">
                 {pythonCode}
@@ -138,7 +215,10 @@ if __name__ == "__main__":
             <div className="bg-white border border-gray-200 rounded-3xl p-8 shadow-sm">
               <h3 className="mb-3 font-semibold text-lg">Get Weights</h3>
               <p className="text-black/60 text-sm mb-6 leading-relaxed">
-                Download the trained .pth file to use with the inference script.
+                {isTinyBert 
+                  ? "Download the model zip file. This archive contains the config, tokenizer, and safetensors weights."
+                  : "Download the trained .pth file to use with the inference script."
+                }
               </p>
               <a 
                 href={downloadUrl} 
@@ -153,10 +233,20 @@ if __name__ == "__main__":
             <div className="bg-gray-50 border border-gray-100 rounded-3xl p-8">
               <h3 className="mb-4 font-medium text-lg text-black">Requirements</h3>
               <ul className="pl-5 text-black/70 leading-loose list-disc">
-                <li>Python 3.8+</li>
-                <li>PyTorch</li>
-                <li>Torchvision</li>
-                <li>Pillow</li>
+                {isTinyBert ? (
+                   <>
+                     <li>Python 3.8+</li>
+                     <li>Transformers (Hugging Face)</li>
+                     <li>PyTorch</li>
+                   </>
+                ) : (
+                   <>
+                     <li>Python 3.8+</li>
+                     <li>PyTorch</li>
+                     <li>Torchvision</li>
+                     <li>Pillow</li>
+                   </>
+                )}
               </ul>
             </div>
 

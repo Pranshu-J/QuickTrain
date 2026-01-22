@@ -259,7 +259,7 @@ const ModelTrainer = () => {
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-800 bg-neutral-900/50 text-neutral-400 text-xs font-semibold uppercase tracking-wider mb-4">
             <Sparkles size={12} className="text-yellow-400" />
-            AI Model Training
+            Classification Training
           </div>
           <h2 className="text-5xl md:text-6xl font-bold mb-6 text-white tracking-tight">Configure Training</h2>
           
