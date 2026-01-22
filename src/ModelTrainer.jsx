@@ -37,15 +37,29 @@ const ModelTrainer = () => {
   const inputRefV2 = useRef(null);
   const trainBRef = useRef(null);
 
-  // Helper: Generate Previews
-  const generatePreviews = (files) => {
-    const images = Array.from(files).filter(file => file.type.startsWith('image/'));
-    return images.slice(0, 6).map(file => URL.createObjectURL(file));
+  // Helper: Get all files from entry (file or directory)
+  const getAllFiles = async (entry) => {
+    const files = [];
+    if (entry.kind === 'file') {
+      const file = await new Promise(resolve => entry.file(resolve));
+      files.push(file);
+    } else if (entry.kind === 'directory') {
+      const dirReader = entry.createReader();
+      const entries = await new Promise(resolve => dirReader.readEntries(resolve));
+      for (const e of entries) {
+        files.push(...await getAllFiles(e));
+      }
+    }
+    return files;
   };
 
   const handleFiles = (files, setFolder, setPreviews) => {
     if (!files || files.length === 0) return;
-    const fileArray = Array.from(files);
+    const fileArray = Array.from(files).filter(file => file.type.startsWith('image/'));
+    if (fileArray.length === 0) {
+      alert("No image files found. Please upload images or folders containing only image files.");
+      return;
+    }
     setFolder(fileArray);
     const newPreviews = generatePreviews(fileArray);
     setPreviews(prev => {
@@ -61,10 +75,20 @@ const ModelTrainer = () => {
     else if (e.type === "dragleave") setActive(false);
   };
 
-  const handleDrop = (e, setActive, setFolder, setPreviews) => {
+  const handleDrop = async (e, setActive, setFolder, setPreviews) => {
     e.preventDefault(); e.stopPropagation();
     setActive(false);
-    if (e.dataTransfer.files?.length > 0) handleFiles(e.dataTransfer.files, setFolder, setPreviews);
+    const files = [];
+    const items = e.dataTransfer.items;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const entry = item.webkitGetAsEntry();
+      if (entry) {
+        const f = await getAllFiles(entry);
+        files.push(...f);
+      }
+    }
+    handleFiles(files, setFolder, setPreviews);
   };
 
   // Toggle handler with FLIP animation
@@ -217,11 +241,11 @@ const ModelTrainer = () => {
         <div className="text-center pointer-events-none z-10 p-4">
           <UploadCloud size={32} className={`mb-4 mx-auto transition-transform duration-300 ${dragActive ? 'scale-110 text-white' : 'text-neutral-500 group-hover:text-white'}`} />
           <div className="font-medium text-neutral-300 group-hover:text-white transition-colors">
-            {folder.length > 0 ? 'Add more files' : 'Drop folder here'}
+            {folder.length > 0 ? 'Add more files' : 'Drop files or folder here'}
           </div>
           <p className="text-xs text-neutral-500 mt-2">or click to browse</p>
         </div>
-        <input ref={inputRef} type="file" multiple webkitdirectory="true" onChange={(e) => handleFiles(e.target.files, setFolder, setPreviews)} className="hidden" />
+        <input ref={inputRef} type="file" multiple accept="image/*" onChange={(e) => handleFiles(e.target.files, setFolder, setPreviews)} className="hidden" />
       </div>
 
       {/* Previews */}

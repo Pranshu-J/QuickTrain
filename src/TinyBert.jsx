@@ -201,20 +201,36 @@ const TinyBertTrainer = () => {
           )}
         </div>
 
-        <div className="mt-10 flex justify-center">
-           <button 
-             className={`
-               px-12 py-4 rounded-full font-bold text-lg transition-all min-w-[280px] shadow-2xl
-               ${status === 'Idle' || status.includes('Error') 
-                 ? 'bg-white text-black hover:bg-neutral-200 hover:scale-105 active:scale-95' 
-                 : 'bg-neutral-800 text-neutral-500 cursor-wait'}
-             `}
-             onClick={handleStartTraining} 
-             disabled={status !== 'Idle' && !status.includes('Error')}
-           >
-             {status === 'Idle' || status.includes('Error') ? 'Start Training Session' : status}
-           </button>
+        {/* Replace the bottom button and its container with this */}
+        <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black to-transparent pointer-events-none flex justify-center pb-12">
+          <div className="pointer-events-auto flex flex-col items-center gap-4">
+            <div className={`px-4 py-1.5 rounded-full border text-xs font-mono font-medium backdrop-blur-md
+              ${status === 'Idle' 
+                ? 'border-neutral-800 bg-neutral-900/80 text-neutral-500' 
+                : status.includes('Error') 
+                  ? 'border-red-900/50 bg-red-950/50 text-red-400'
+                  : 'border-purple-900/50 bg-purple-950/50 text-purple-400' // Use purple for TinyBert
+              }`}>
+              STATUS: {status.toUpperCase()}
+            </div>
+            
+            <button 
+              className={`
+                px-10 py-4 rounded-full font-bold text-lg transition-all min-w-[240px] shadow-2xl hover:scale-105 active:scale-95
+                ${status === 'Idle' || status.includes('Error') 
+                  ? 'bg-white text-black hover:bg-neutral-200 cursor-pointer shadow-white/10' 
+                  : 'bg-neutral-800 text-neutral-500 cursor-wait'}
+              `}
+              onClick={handleStartTraining} 
+              disabled={status !== 'Idle' && !status.includes('Error')}
+            >
+              {status === 'Idle' || status.includes('Error') ? 'Start Training Session' : 'Processing...'}
+            </button>
+          </div>
         </div>
+
+        {/* Add this spacer at the very bottom of the main container */}
+        <div className="h-32"></div>
       </div>
     </div>
   );

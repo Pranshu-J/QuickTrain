@@ -6,6 +6,7 @@ import Dashboard from './Dashboard';
 import ModelUsage from './ModelUsage';
 import TinyBert from './TinyBert';
 import EBMTrainer from './EBM';
+import Documentation from './Documentation';
 import { useAuth } from './Auth';
 import './App.css';
 
@@ -35,6 +36,7 @@ const App = () => {
       <Router>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/docs" element={<Documentation />} />
           <Route 
             path="/train/:modelId" 
             element={

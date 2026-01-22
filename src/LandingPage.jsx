@@ -203,10 +203,10 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2 opacity-50">
              <Box size={20} />
-             <span className="font-semibold">Weights</span>
+             <span className="font-semibold">QuickTrain</span>
           </div>
           <p className="text-neutral-500 text-sm">
-            © 2026 Weights. All rights reserved.
+            © 2026 QuickTrain. All rights reserved.
           </p>
         </div>
       </footer>

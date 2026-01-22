@@ -131,8 +131,8 @@ const EBMTrainer = () => {
            <div>
              <strong>Format Requirement:</strong> Your file (CSV or JSON) must contain input data:
              <ul className="list-disc list-inside mt-1 ml-1 text-amber-300/80">
-               <li><code>text</code>: The input data sequence</li>
-               <li><code>label</code>: The class or scalar energy target</li>
+               <li><code>features</code>: The first n-1 columns are used to predict the last column</li>
+               <li><code>target</code>: The last column is the target variable which the model aims to predict</li>
              </ul>
            </div>
         </div>
@@ -140,7 +140,7 @@ const EBMTrainer = () => {
         <div className="mb-6">
            <label className="text-sm font-semibold text-neutral-400 uppercase tracking-wide mb-2 block">Selected Model Architecture</label>
            <div className="w-full bg-neutral-900 text-white border border-neutral-800 rounded-lg px-4 py-3 opacity-80 cursor-not-allowed flex justify-between items-center">
-             <span>Stochastic Deep Energy (Langevin Dynamics)</span>
+             <span>Generalized Additive Model (GAM)</span>
              <span className="text-xs bg-neutral-800 px-2 py-1 rounded text-neutral-400">Fixed</span>
            </div>
         </div>
@@ -203,20 +203,36 @@ const EBMTrainer = () => {
           )}
         </div>
 
-        <div className="mt-10 flex justify-center">
-           <button 
-             className={`
-               px-12 py-4 rounded-full font-bold text-lg transition-all min-w-[280px] shadow-2xl
-               ${status === 'Idle' || status.includes('Error') 
-                 ? 'bg-white text-black hover:bg-neutral-200 hover:scale-105 active:scale-95' 
-                 : 'bg-neutral-800 text-neutral-500 cursor-wait'}
-             `}
-             onClick={handleStartTraining} 
-             disabled={status !== 'Idle' && !status.includes('Error')}
-           >
-             {status === 'Idle' || status.includes('Error') ? 'Start Training Session' : status}
-           </button>
+        {/* Replace the bottom button and its container with this */}
+        <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black to-transparent pointer-events-none flex justify-center pb-12">
+          <div className="pointer-events-auto flex flex-col items-center gap-4">
+            <div className={`px-4 py-1.5 rounded-full border text-xs font-mono font-medium backdrop-blur-md
+              ${status === 'Idle' 
+                ? 'border-neutral-800 bg-neutral-900/80 text-neutral-500' 
+                : status.includes('Error') 
+                  ? 'border-red-900/50 bg-red-950/50 text-red-400'
+                  : 'border-amber-900/50 bg-amber-950/50 text-amber-400' // Use amber for EBM
+              }`}>
+              STATUS: {status.toUpperCase()}
+            </div>
+            
+            <button 
+              className={`
+                px-10 py-4 rounded-full font-bold text-lg transition-all min-w-[240px] shadow-2xl hover:scale-105 active:scale-95
+                ${status === 'Idle' || status.includes('Error') 
+                  ? 'bg-white text-black hover:bg-neutral-200 cursor-pointer shadow-white/10' 
+                  : 'bg-neutral-800 text-neutral-500 cursor-wait'}
+              `}
+              onClick={handleStartTraining} 
+              disabled={status !== 'Idle' && !status.includes('Error')}
+            >
+              {status === 'Idle' || status.includes('Error') ? 'Start Training Session' : 'Processing...'}
+            </button>
+          </div>
         </div>
+
+        {/* Add this spacer at the very bottom of the main container to prevent content overlap */}
+        <div className="h-32"></div>
       </div>
     </div>
   );

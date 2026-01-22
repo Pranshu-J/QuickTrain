@@ -35,9 +35,7 @@ const Navbar = ({ user, navigate, signOut, setIsModalOpen, btnSecondary }) => {
       className="absolute top-6 left-1/2 -translate-x-1/2 w-auto py-3 px-4 flex justify-between items-center gap-6 z-30 bg-white/10 shadow-lg rounded-full backdrop-blur-xl border border-white/10"
       onMouseLeave={() => moveSliderTo('logo')} // Return to logo on leave
     >
-      
       {/* --- THE SLIDING PILL --- */}
-      {/* This element slides behind the text */}
       <div 
         className="absolute top-2 bottom-2 bg-white/20 rounded-full transition-all duration-300 ease-out pointer-events-none"
         style={{
@@ -53,14 +51,22 @@ const Navbar = ({ user, navigate, signOut, setIsModalOpen, btnSecondary }) => {
         onMouseEnter={() => moveSliderTo('logo')}
         className="flex items-center gap-2 font-bold text-xl text-white px-3 py-1 relative z-10 cursor-default"
       >
-        <Box strokeWidth={3} size={24} /> <span>weights</span>
+        <Box strokeWidth={3} size={24} /> <span>QuickTrain</span>
       </div>
 
       {/* --- Actions Section --- */}
       <div className="flex items-center">
+        {/* Docs button always visible */}
+        <button
+          ref={(el) => (itemRefs.current['docs'] = el)}
+          onMouseEnter={() => moveSliderTo('docs')}
+          className={`${btnSecondary} relative z-10 px-3 py-1 rounded-full mx-2`}
+          onClick={() => navigate('/docs')}
+        >
+          Docs
+        </button>
         {user ? (
           <div className="flex items-center gap-2">
-            
             <button 
               ref={(el) => (itemRefs.current['dashboard'] = el)}
               onMouseEnter={() => moveSliderTo('dashboard')}
@@ -69,7 +75,6 @@ const Navbar = ({ user, navigate, signOut, setIsModalOpen, btnSecondary }) => {
             >
               Dashboard
             </button>
-            
             <button 
               ref={(el) => (itemRefs.current['logout'] = el)}
               onMouseEnter={() => moveSliderTo('logout')}
